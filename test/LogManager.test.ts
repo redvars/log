@@ -1,17 +1,20 @@
 import { assertEquals, assertThrows } from "@std/assert";
-import { log, LogManager } from "../mod.ts";
-import { createConsoleHandler } from "../mod.ts";
+import { createConsoleExporter, LogManager } from "../mod.ts";
+import type { LogRecordExporter, ReadableLogRecord } from "../mod.ts";
 
-class RecordingHandler extends log.BaseHandler {
+class RecordingExporter implements LogRecordExporter {
   received: string[] = [];
-  override log(msg: string): void {
-    this.received.push(msg);
+  export(logs: ReadableLogRecord[], resultCallback: (result: { code: number }) => void): void {
+    for (const record of logs) this.received.push(String(record.body));
+    resultCallback({ code: 0 });
   }
+  async shutdown(): Promise<void> {}
+  async forceFlush(): Promise<void> {}
 }
 
 Deno.test("LogManager - getLogger returns a cached logger for the same name", () => {
   const manager = new LogManager();
-  manager.registerHandler("console", createConsoleHandler());
+  manager.registerHandler("console", createConsoleExporter());
 
   const a = manager.getLogger("svc-a");
   const b = manager.getLogger("svc-a");
@@ -21,8 +24,8 @@ Deno.test("LogManager - getLogger returns a cached logger for the same name", ()
 Deno.test("LogManager - independent instances don't share loggers or handlers", () => {
   const managerA = new LogManager();
   const managerB = new LogManager();
-  managerA.registerHandler("console", createConsoleHandler());
-  managerB.registerHandler("console", createConsoleHandler());
+  managerA.registerHandler("console", createConsoleExporter());
+  managerB.registerHandler("console", createConsoleExporter());
 
   assertEquals(managerA.hasHandler("console"), true);
   assertEquals(managerB.hasHandler("console"), true);
@@ -43,8 +46,8 @@ Deno.test("LogManager - throws a clear error for an unregistered handler", () =>
 
 Deno.test("LogManager - setHandlers() flips an existing logger to a different set of handlers", () => {
   const manager = new LogManager();
-  const file = new RecordingHandler("INFO");
-  const db = new RecordingHandler("INFO");
+  const file = new RecordingExporter();
+  const db = new RecordingExporter();
   manager.registerHandler("file", file);
   manager.registerHandler("database", db);
 
@@ -61,8 +64,8 @@ Deno.test("LogManager - setHandlers() flips an existing logger to a different se
 
 Deno.test("LogManager - enableHandler()/disableHandler() toggle a single handler at a time", () => {
   const manager = new LogManager();
-  const file = new RecordingHandler("INFO");
-  const db = new RecordingHandler("INFO");
+  const file = new RecordingExporter();
+  const db = new RecordingExporter();
   manager.registerHandler("file", file);
   manager.registerHandler("database", db);
 
@@ -79,12 +82,11 @@ Deno.test("LogManager - enableHandler()/disableHandler() toggle a single handler
   manager.enableHandler("svc2", "database");
   logger.info("still only inserted once per handler");
   assertEquals(db.received.length, 2);
-  assertEquals(logger.handlers.length, 1);
 });
 
 Deno.test("LogManager - setHandlers()/enableHandler() throw for an unregistered logger or handler", () => {
   const manager = new LogManager();
-  manager.registerHandler("console", createConsoleHandler());
+  manager.registerHandler("console", createConsoleExporter());
   manager.getLogger("svc3");
 
   assertThrows(

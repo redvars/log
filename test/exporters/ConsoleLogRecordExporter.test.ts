@@ -1,9 +1,9 @@
 import { assertEquals, assertMatch } from "@std/assert";
-import { createConsoleHandler, LogManager } from "../../mod.ts";
+import { createConsoleExporter, LogManager } from "../../mod.ts";
 
-Deno.test("createConsoleHandler - logs formatted messages to the console", () => {
+Deno.test("createConsoleExporter - logs formatted messages to the console", () => {
   const manager = new LogManager();
-  manager.registerHandler("console", createConsoleHandler("DEBUG", { useColors: false }));
+  manager.registerHandler("console", createConsoleExporter({ useColors: false }));
   const logger = manager.getLogger("ConsoleTest", "DEBUG");
 
   const lines: string[] = [];

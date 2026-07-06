@@ -1,26 +1,35 @@
-import { log } from "../deps.ts";
-import type { LevelName } from "../deps.ts";
-import { createConsoleHandler } from "./handlers/ConsoleHandler.ts";
+import { otelLogsSdk, otelResources } from "../deps.ts";
+import type { LogRecordExporter } from "../deps.ts";
+import { MultiplexingLogRecordProcessor } from "./MultiplexingLogRecordProcessor.ts";
+import { Logger } from "./Logger.ts";
+import type { LevelName } from "./severity.ts";
+import { createConsoleExporter } from "./exporters/ConsoleLogRecordExporter.ts";
 
 /**
- * Owns a set of named handlers and the loggers built from them. Unlike
- * `@std/log`'s global `log.setup()` registry, each `LogManager` instance is
- * independent, so separate parts of an app (or separate packages) never
- * collide on handler/logger names.
+ * Owns a `LoggerProvider` (OTel Logs SDK), a set of named exporters, and the
+ * `Logger`s built from them. Each `LogManager` instance is independent, so
+ * separate parts of an app (or separate packages) never collide on names.
  */
 export class LogManager {
-  #handlers = new Map<string, log.BaseHandler>();
-  #loggers = new Map<string, log.Logger>();
+  #processor = new MultiplexingLogRecordProcessor();
+  #provider: otelLogsSdk.LoggerProvider;
+  #loggers = new Map<string, Logger>();
 
-  /** Registers (and initializes) a handler under `name` for later use by `getLogger`. */
-  registerHandler(name: string, handler: log.BaseHandler): this {
-    handler.setup();
-    this.#handlers.set(name, handler);
+  constructor(serviceName = "@redvars/log") {
+    this.#provider = new otelLogsSdk.LoggerProvider({
+      resource: otelResources.resourceFromAttributes({ "service.name": serviceName }),
+      processors: [this.#processor],
+    });
+  }
+
+  /** Registers a named exporter for later use by `getLogger`. */
+  registerHandler(name: string, exporter: LogRecordExporter): this {
+    this.#processor.registerExporter(name, exporter);
     return this;
   }
 
   hasHandler(name: string): boolean {
-    return this.#handlers.has(name);
+    return this.#processor.hasExporter(name);
   }
 
   /**
@@ -32,13 +41,12 @@ export class LogManager {
     name: string,
     level: LevelName = "INFO",
     handlerNames: string[] = ["console"],
-  ): log.Logger {
+  ): Logger {
     const existing = this.#loggers.get(name);
     if (existing) return existing;
 
-    const logger = new log.Logger(name, level, {
-      handlers: this.#resolveHandlers(handlerNames),
-    });
+    this.#processor.setActiveExporters(name, handlerNames);
+    const logger = new Logger(this.#provider.getLogger(name), name, level);
     this.#loggers.set(name, logger);
     return logger;
   }
@@ -49,49 +57,28 @@ export class LogManager {
    * runtime: `manager.setHandlers("MyService", ["console", "database"])`.
    */
   setHandlers(loggerName: string, handlerNames: string[]): void {
-    this.#requireLogger(loggerName).handlers = this.#resolveHandlers(
-      handlerNames,
-    );
+    this.#requireLogger(loggerName);
+    this.#processor.setActiveExporters(loggerName, handlerNames);
   }
 
   /** Adds a handler (by name) to an already-created logger's active set, if not already present. */
   enableHandler(loggerName: string, handlerName: string): void {
-    const logger = this.#requireLogger(loggerName);
-    const handler = this.#requireHandler(handlerName);
-    if (!logger.handlers.includes(handler)) {
-      logger.handlers = [...logger.handlers, handler];
-    }
+    this.#requireLogger(loggerName);
+    this.#processor.enableExporter(loggerName, handlerName);
   }
 
   /** Removes a handler (by name) from an already-created logger's active set, if present. */
   disableHandler(loggerName: string, handlerName: string): void {
-    const logger = this.#requireLogger(loggerName);
-    const handler = this.#handlers.get(handlerName);
-    logger.handlers = logger.handlers.filter((h) => h !== handler);
+    this.#requireLogger(loggerName);
+    this.#processor.disableExporter(loggerName, handlerName);
   }
 
-  /** Flushes/destroys every registered handler (e.g. before process exit). */
+  /** Flushes/destroys every registered handler and shuts down the underlying LoggerProvider. */
   async destroy(): Promise<void> {
-    for (const handler of this.#handlers.values()) {
-      await handler.destroy();
-    }
+    await this.#provider.shutdown();
   }
 
-  #resolveHandlers(handlerNames: string[]): log.BaseHandler[] {
-    return handlerNames.map((handlerName) => this.#requireHandler(handlerName));
-  }
-
-  #requireHandler(handlerName: string): log.BaseHandler {
-    const handler = this.#handlers.get(handlerName);
-    if (!handler) {
-      throw new Error(
-        `[@redvars/log] No handler registered under name "${handlerName}". Call registerHandler() first.`,
-      );
-    }
-    return handler;
-  }
-
-  #requireLogger(loggerName: string): log.Logger {
+  #requireLogger(loggerName: string): Logger {
     const logger = this.#loggers.get(loggerName);
     if (!logger) {
       throw new Error(
@@ -103,4 +90,4 @@ export class LogManager {
 }
 
 export const defaultLogManager: LogManager = new LogManager();
-defaultLogManager.registerHandler("console", createConsoleHandler());
+defaultLogManager.registerHandler("console", createConsoleExporter());

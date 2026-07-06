@@ -1,9 +1,9 @@
-import { log } from "../../deps.ts";
-import type { LevelName, LogRecord } from "../../deps.ts";
+import { otelCore } from "../../deps.ts";
+import type { LogRecordExporter, ReadableLogRecord } from "../../deps.ts";
 import { toLogEntry } from "../types.ts";
 import type { TLogEntry } from "../types.ts";
 
-export type TDatabaseHandlerOptions = {
+export type TDatabaseExporterOptions = {
   /** Flush once the buffer reaches this many entries. Default 20. */
   batchSize?: number;
   /** Flush on a timer regardless of buffer size, in milliseconds. Default 5000. */
@@ -16,42 +16,37 @@ export type TDatabaseHandlerOptions = {
 };
 
 /**
- * Base class for any handler that persists log entries to a database. Buffers
- * records and flushes them in batches via `insertBatch`, which subclasses
- * implement for their specific store (Postgres, an ORM, etc). Extends
- * `log.BaseHandler` fully overriding `handle()` since writes here are async,
- * unlike the synchronous `log()` contract the built-in handlers use.
+ * Base class for any exporter that persists log entries to a database.
+ * Buffers records and flushes them in batches via `insertBatch`, which
+ * subclasses implement for their specific store (Postgres, an ORM, etc).
+ * Deliberately DB-agnostic — no dependency on any particular driver or ORM.
  */
-export abstract class DatabaseHandler extends log.BaseHandler {
+export abstract class DatabaseLogRecordExporter implements LogRecordExporter {
   #buffer: TLogEntry[] = [];
-  #timer?: number;
+  #timer: number;
   #batchSize: number;
-  #flushIntervalMs: number;
   #onError: (error: unknown, batch: TLogEntry[]) => void;
 
-  constructor(levelName: LevelName, options: TDatabaseHandlerOptions = {}) {
-    super(levelName);
+  constructor(options: TDatabaseExporterOptions = {}) {
     this.#batchSize = options.batchSize ?? 20;
-    this.#flushIntervalMs = options.flushIntervalMs ?? 5000;
     this.#onError = options.onError ??
       ((error, batch) =>
         console.error(
-          `[@redvars/log] DatabaseHandler failed to insert ${batch.length} log entr${
+          `[@redvars/log] DatabaseLogRecordExporter failed to insert ${batch.length} log entr${
             batch.length === 1 ? "y" : "ies"
           }`,
           error,
         ));
-  }
-
-  override setup(): void {
     this.#timer = setInterval(() => {
       this.flush();
-    }, this.#flushIntervalMs);
+    }, options.flushIntervalMs ?? 5000);
   }
 
-  override handle(logRecord: LogRecord): void {
-    if (this.level > logRecord.level) return;
-    this.#buffer.push(toLogEntry(logRecord));
+  export(logs: ReadableLogRecord[], resultCallback: (result: otelCore.ExportResult) => void): void {
+    for (const record of logs) {
+      this.#buffer.push(toLogEntry(record));
+    }
+    resultCallback({ code: otelCore.ExportResultCode.SUCCESS });
     if (this.#buffer.length >= this.#batchSize) {
       this.flush();
     }
@@ -71,7 +66,11 @@ export abstract class DatabaseHandler extends log.BaseHandler {
   /** Persist a batch of log entries. Implement this for your database/client of choice. */
   abstract insertBatch(entries: TLogEntry[]): Promise<void>;
 
-  override async destroy(): Promise<void> {
+  async forceFlush(): Promise<void> {
+    await this.flush();
+  }
+
+  async shutdown(): Promise<void> {
     clearInterval(this.#timer);
     await this.flush();
   }

@@ -1,15 +1,15 @@
-import { DatabaseHandler, LogManager } from "../mod.ts";
+import { DatabaseLogRecordExporter, LogManager } from "../mod.ts";
 import type { TLogEntry } from "../mod.ts";
 
-// A DatabaseHandler is DB-agnostic: extend it and implement `insertBatch` for
-// whatever store you're using. This example uses a fake async client so it
-// runs standalone; swap the body of `insertBatch` for your real driver
-// (pg, sqlite, an ORM, an HTTP log-ingestion endpoint, etc).
-class FakeClientDatabaseHandler extends DatabaseHandler {
+// DatabaseLogRecordExporter is DB-agnostic: extend it and implement
+// `insertBatch` for whatever store you're using. This example uses a fake
+// async client so it runs standalone; swap the body of `insertBatch` for
+// your real driver (pg, sqlite, an ORM, an HTTP log-ingestion endpoint, etc).
+class FakeClientDatabaseExporter extends DatabaseLogRecordExporter {
   override async insertBatch(entries: TLogEntry[]): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 10)); // pretend network call
     for (const entry of entries) {
-      console.log(`[fake-db insert] ${entry.levelName} ${entry.loggerName}: ${entry.msg}`);
+      console.log(`[fake-db insert] ${entry.severityText} ${entry.loggerName}: ${entry.body}`);
     }
   }
 }
@@ -17,7 +17,7 @@ class FakeClientDatabaseHandler extends DatabaseHandler {
 const manager = new LogManager();
 manager.registerHandler(
   "database",
-  new FakeClientDatabaseHandler("INFO", { batchSize: 3, flushIntervalMs: 2000 }),
+  new FakeClientDatabaseExporter({ batchSize: 3, flushIntervalMs: 2000 }),
 );
 const logger = manager.getLogger("DatabaseExample", "INFO", ["database"]);
 

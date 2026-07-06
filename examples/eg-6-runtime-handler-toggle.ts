@@ -1,19 +1,19 @@
-import { createConsoleHandler, createFileHandler, DatabaseHandler, LogManager } from "../mod.ts";
+import { createConsoleExporter, createFileExporter, DatabaseLogRecordExporter, LogManager } from "../mod.ts";
 import type { TLogEntry } from "../mod.ts";
 
-class FakeDatabaseHandler extends DatabaseHandler {
+class FakeDatabaseExporter extends DatabaseLogRecordExporter {
   override async insertBatch(entries: TLogEntry[]): Promise<void> {
     await Promise.resolve();
     for (const entry of entries) {
-      console.log(`[fake-db insert] ${entry.msg}`);
+      console.log(`[fake-db insert] ${entry.body}`);
     }
   }
 }
 
 const manager = new LogManager();
-manager.registerHandler("console", createConsoleHandler());
-manager.registerHandler("file", createFileHandler("./app.log"));
-manager.registerHandler("database", new FakeDatabaseHandler("INFO", { batchSize: 1 }));
+manager.registerHandler("console", createConsoleExporter());
+manager.registerHandler("file", createFileExporter("./app.log"));
+manager.registerHandler("database", new FakeDatabaseExporter({ batchSize: 1 }));
 
 // Starts out writing to console + file.
 const logger = manager.getLogger("ToggleExample", "INFO", ["console", "file"]);

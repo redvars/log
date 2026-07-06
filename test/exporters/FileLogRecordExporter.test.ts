@@ -1,11 +1,11 @@
 import { assertEquals, assertMatch } from "@std/assert";
-import { createFileHandler, LogManager } from "../../mod.ts";
+import { createFileExporter, LogManager } from "../../mod.ts";
 
-Deno.test("createFileHandler - writes formatted, ANSI-stripped messages to a file", async () => {
+Deno.test("createFileExporter - writes formatted, ANSI-stripped messages to a file", async () => {
   const filename = await Deno.makeTempFile({ suffix: ".log" });
   try {
     const manager = new LogManager();
-    manager.registerHandler("file", createFileHandler(filename, "DEBUG"));
+    manager.registerHandler("file", createFileExporter(filename));
     const logger = manager.getLogger("FileTest", "DEBUG", ["file"]);
 
     logger.info("\x1b[31mhello file\x1b[0m");

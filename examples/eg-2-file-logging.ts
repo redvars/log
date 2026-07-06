@@ -1,8 +1,8 @@
-import { createConsoleHandler, createFileHandler, LogManager } from "../mod.ts";
+import { createConsoleExporter, createFileExporter, LogManager } from "../mod.ts";
 
 const manager = new LogManager();
-manager.registerHandler("console", createConsoleHandler());
-manager.registerHandler("file", createFileHandler("./app.log", "DEBUG"));
+manager.registerHandler("console", createConsoleExporter());
+manager.registerHandler("file", createFileExporter("./app.log"));
 
 // A logger can use several handlers at once.
 const logger = manager.getLogger("FileExample", "DEBUG", ["console", "file"]);

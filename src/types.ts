@@ -1,22 +1,23 @@
-import type { LogRecord } from "../deps.ts";
+import { otelCore } from "../deps.ts";
+import type { ReadableLogRecord } from "../deps.ts";
 
-/** A single formatted log entry handed to a {@link DatabaseHandler} subclass. */
+/** A single log entry handed to a {@link DatabaseLogRecordExporter} subclass. */
 export type TLogEntry = {
-  datetime: Date;
-  level: number;
-  levelName: string;
+  timestamp: Date;
+  severityNumber: number;
+  severityText: string;
   loggerName: string;
-  msg: string;
-  args: unknown[];
+  body: string;
+  attributes: Record<string, unknown>;
 };
 
-export function toLogEntry(record: LogRecord): TLogEntry {
+export function toLogEntry(record: ReadableLogRecord): TLogEntry {
   return {
-    datetime: record.datetime,
-    level: record.level,
-    levelName: record.levelName,
-    loggerName: record.loggerName,
-    msg: record.msg,
-    args: record.args,
+    timestamp: new Date(otelCore.hrTimeToMilliseconds(record.hrTime)),
+    severityNumber: record.severityNumber ?? 0,
+    severityText: record.severityText ?? "UNKNOWN",
+    loggerName: record.instrumentationScope.name,
+    body: typeof record.body === "string" ? record.body : String(record.body ?? ""),
+    attributes: { ...record.attributes },
   };
 }
