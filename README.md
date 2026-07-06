@@ -1,5 +1,8 @@
 # @redvars/log
 
+[![JSR](https://jsr.io/badges/@redvars/log)](https://jsr.io/@redvars/log)
+[![codecov](https://codecov.io/gh/redvars/log/graph/badge.svg)](https://codecov.io/gh/redvars/log)
+
 A small, extensible logging package for Deno/Node built on top of [`@std/log`](https://jsr.io/@std/log).
 
 - **Console**, **file**, and **database** sinks out of the box.
