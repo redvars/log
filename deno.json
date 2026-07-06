@@ -1,6 +1,6 @@
 {
   "name": "@redvars/log",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "exports": "./mod.ts",
   "tasks": {
     "coverage:unit": "deno task test --coverage=./dist/coverage && deno coverage --include=src --lcov ./dist/coverage > ./dist/coverage/lcov.info",
