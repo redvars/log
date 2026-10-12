@@ -5,8 +5,7 @@
 
 A small, extensible logging package for Node.js built on the real
 [OpenTelemetry Logs SDK](https://opentelemetry.io/docs/specs/otel/logs/) (`@opentelemetry/sdk-logs` +
-`@opentelemetry/api-logs`) — not `@std/log`, which Deno's own std team has flagged as
-["likely to be removed"](https://github.com/denoland/std/issues/6124).
+`@opentelemetry/api-logs`)
 
 - **Console**, **file**, and **database** sinks out of the box.
 - Extend with a sink for anywhere else — implement the 3-method `LogRecordExporter` interface.
@@ -121,6 +120,17 @@ correlated trace/span IDs once it does. See
 Anything that implements the `LogRecordExporter` interface (`export`/`shutdown`/`forceFlush`, re-exported
 as a type from this package) works — see
 [`examples/eg-4-custom-handler.ts`](examples/eg-4-custom-handler.ts) for a webhook-style example.
+
+## Development
+
+```
+npm install
+npm run build      # compile TypeScript to dist/
+npm test           # clean, build, then run the node:test suite
+npm run coverage   # same, with lcov output in coverage/lcov.info
+```
+
+Releases are published to JSR from GitHub Actions when a `v*` tag is pushed.
 
 ## Code of Conduct
 
