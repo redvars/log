@@ -1,7 +1,7 @@
-import { assertEquals } from "@std/assert";
-import { FakeTime } from "@std/testing/time";
-import { DatabaseLogRecordExporter, LogManager } from "../../mod.ts";
-import type { TLogEntry } from "../../mod.ts";
+import { mock, test } from "node:test";
+import assert from "node:assert/strict";
+import { DatabaseLogRecordExporter, LogManager } from "../../mod.js";
+import type { TLogEntry } from "../../mod.js";
 
 class FakeDatabaseExporter extends DatabaseLogRecordExporter {
   inserted: TLogEntry[][] = [];
@@ -17,23 +17,23 @@ class FakeDatabaseExporter extends DatabaseLogRecordExporter {
   }
 }
 
-Deno.test("DatabaseLogRecordExporter - auto-flushes once the batch size is reached", async () => {
+test("DatabaseLogRecordExporter - auto-flushes once the batch size is reached", async () => {
   const exporter = new FakeDatabaseExporter({ batchSize: 2 });
   const manager = new LogManager();
   manager.registerHandler("db", exporter);
   const logger = manager.getLogger("DbTest", "INFO", ["db"]);
 
   logger.info("one");
-  assertEquals(exporter.inserted.length, 0);
+  assert.deepStrictEqual(exporter.inserted.length, 0);
   logger.info("two");
   await new Promise((resolve) => setTimeout(resolve, 0)); // let the flush() microtask settle
 
-  assertEquals(exporter.inserted.length, 1);
-  assertEquals(exporter.inserted[0].map((e) => e.body), ["one", "two"]);
+  assert.deepStrictEqual(exporter.inserted.length, 1);
+  assert.deepStrictEqual(exporter.inserted[0].map((e) => e.body), ["one", "two"]);
   await manager.destroy();
 });
 
-Deno.test("DatabaseLogRecordExporter - manual flush() sends a partial buffer", async () => {
+test("DatabaseLogRecordExporter - manual flush() sends a partial buffer", async () => {
   const exporter = new FakeDatabaseExporter({ batchSize: 100 });
   const manager = new LogManager();
   manager.registerHandler("db", exporter);
@@ -42,12 +42,12 @@ Deno.test("DatabaseLogRecordExporter - manual flush() sends a partial buffer", a
   logger.info("only one");
   await exporter.flush();
 
-  assertEquals(exporter.inserted.length, 1);
-  assertEquals(exporter.inserted[0].map((e) => e.body), ["only one"]);
+  assert.deepStrictEqual(exporter.inserted.length, 1);
+  assert.deepStrictEqual(exporter.inserted[0].map((e) => e.body), ["only one"]);
   await manager.destroy();
 });
 
-Deno.test("DatabaseLogRecordExporter - destroy() flushes remaining entries and stops the timer", async () => {
+test("DatabaseLogRecordExporter - destroy() flushes remaining entries and stops the timer", async () => {
   const exporter = new FakeDatabaseExporter({ batchSize: 100 });
   const manager = new LogManager();
   manager.registerHandler("db", exporter);
@@ -56,10 +56,10 @@ Deno.test("DatabaseLogRecordExporter - destroy() flushes remaining entries and s
   logger.info("flush me on destroy");
   await manager.destroy();
 
-  assertEquals(exporter.inserted.length, 1);
+  assert.deepStrictEqual(exporter.inserted.length, 1);
 });
 
-Deno.test("DatabaseLogRecordExporter - a failed insertBatch is reported via onError, not thrown", async () => {
+test("DatabaseLogRecordExporter - a failed insertBatch is reported via onError, not thrown", async () => {
   let reportedError: unknown;
   let reportedBatchSize = 0;
   const exporter = new FakeDatabaseExporter({
@@ -77,14 +77,14 @@ Deno.test("DatabaseLogRecordExporter - a failed insertBatch is reported via onEr
   logger.info("this insert will fail");
   await exporter.flush();
 
-  assertEquals((reportedError as Error).message, "insert failed");
-  assertEquals(reportedBatchSize, 1);
-  assertEquals(exporter.inserted.length, 0);
+  assert.deepStrictEqual((reportedError as Error).message, "insert failed");
+  assert.deepStrictEqual(reportedBatchSize, 1);
+  assert.deepStrictEqual(exporter.inserted.length, 0);
   await manager.destroy();
 });
 
-Deno.test("DatabaseLogRecordExporter - flushes on the configured interval", async () => {
-  const time = new FakeTime();
+test("DatabaseLogRecordExporter - flushes on the configured interval", async () => {
+  mock.timers.enable({ apis: ["setInterval"] });
   try {
     const exporter = new FakeDatabaseExporter({
       batchSize: 100,
@@ -95,11 +95,12 @@ Deno.test("DatabaseLogRecordExporter - flushes on the configured interval", asyn
     const logger = manager.getLogger("DbTest5", "INFO", ["db"]);
 
     logger.info("timer flush");
-    assertEquals(exporter.inserted.length, 0);
+    assert.deepStrictEqual(exporter.inserted.length, 0);
 
-    await time.tickAsync(1000);
-    assertEquals(exporter.inserted.length, 1);
+    mock.timers.tick(1000);
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.deepStrictEqual(exporter.inserted.length, 1);
   } finally {
-    time.restore();
+    mock.timers.reset();
   }
 });

@@ -1,9 +1,9 @@
-import { otelLogsSdk, otelResources } from "../deps.ts";
-import type { LogRecordExporter } from "../deps.ts";
-import { MultiplexingLogRecordProcessor } from "./MultiplexingLogRecordProcessor.ts";
-import { Logger } from "./Logger.ts";
-import type { LevelName } from "./severity.ts";
-import { createConsoleExporter } from "./exporters/ConsoleLogRecordExporter.ts";
+import { otelLogsSdk, otelResources } from "../deps.js";
+import type { LogRecordExporter } from "../deps.js";
+import { MultiplexingLogRecordProcessor } from "./MultiplexingLogRecordProcessor.js";
+import { Logger } from "./Logger.js";
+import type { LevelName } from "./severity.js";
+import { createConsoleExporter } from "./exporters/ConsoleLogRecordExporter.js";
 
 /**
  * Owns a `LoggerProvider` (OTel Logs SDK), a set of named exporters, and the

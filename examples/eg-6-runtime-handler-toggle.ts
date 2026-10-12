@@ -1,5 +1,5 @@
-import { createConsoleExporter, createFileExporter, DatabaseLogRecordExporter, LogManager } from "../mod.ts";
-import type { TLogEntry } from "../mod.ts";
+import { createConsoleExporter, createFileExporter, DatabaseLogRecordExporter, LogManager } from "../mod.js";
+import type { TLogEntry } from "../mod.js";
 
 class FakeDatabaseExporter extends DatabaseLogRecordExporter {
   override async insertBatch(entries: TLogEntry[]): Promise<void> {

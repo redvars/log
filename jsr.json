@@ -1,0 +1,9 @@
+{
+  "name": "@redvars/log",
+  "version": "0.2.0",
+  "license": "MIT",
+  "exports": "./mod.ts",
+  "publish": {
+    "include": ["mod.ts", "deps.ts", "src/**/*.ts", "README.md", "LICENSE"]
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "name": "@redvars/log",
+  "version": "0.2.0",
+  "description": "A small, extensible logging package built on the OpenTelemetry Logs SDK",
+  "type": "module",
+  "main": "./dist/mod.js",
+  "types": "./dist/mod.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/mod.d.ts",
+      "default": "./dist/mod.js"
+    }
+  },
+  "files": [
+    "dist/mod.*",
+    "dist/deps.*",
+    "dist/src"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "pretest": "npm run clean && npm run build",
+    "test": "node --test \"dist/test/**/*.test.js\"",
+    "coverage": "npm run clean && npm run build && node -e \"require('node:fs').mkdirSync('coverage',{recursive:true})\" && node --test --experimental-test-coverage --test-coverage-exclude=\"dist/test/**\" --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info \"dist/test/**/*.test.js\""
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/api-logs": "^0.220.0",
+    "@opentelemetry/core": "^2.9.0",
+    "@opentelemetry/resources": "^2.9.0",
+    "@opentelemetry/sdk-logs": "^0.220.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^7.0.2"
+  },
+  "license": "MIT"
+}

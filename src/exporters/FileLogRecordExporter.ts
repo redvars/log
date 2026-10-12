@@ -1,18 +1,18 @@
-import { otelCore } from "../../deps.ts";
-import type { LogRecordExporter, ReadableLogRecord } from "../../deps.ts";
-import { toLogEntry } from "../types.ts";
-import { plainTextFormatter } from "./formatters.ts";
+import { closeSync, openSync, writeSync } from "node:fs";
+import { otelCore } from "../../deps.js";
+import type { LogRecordExporter, ReadableLogRecord } from "../../deps.js";
+import { toLogEntry } from "../types.js";
+import { plainTextFormatter } from "./formatters.js";
 
 export function createFileExporter(filename: string): LogRecordExporter {
-  const file = Deno.openSync(filename, { create: true, append: true, write: true });
-  const encoder = new TextEncoder();
+  const fd = openSync(filename, "a");
 
   return {
     export(logs: ReadableLogRecord[], resultCallback) {
       try {
         for (const record of logs) {
           const entry = toLogEntry(record);
-          file.writeSync(encoder.encode(plainTextFormatter(entry) + "\n"));
+          writeSync(fd, plainTextFormatter(entry) + "\n");
         }
         resultCallback({ code: otelCore.ExportResultCode.SUCCESS });
       } catch (error) {
@@ -20,7 +20,7 @@ export function createFileExporter(filename: string): LogRecordExporter {
       }
     },
     shutdown(): Promise<void> {
-      file.close();
+      closeSync(fd);
       return Promise.resolve();
     },
     forceFlush(): Promise<void> {

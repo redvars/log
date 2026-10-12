@@ -10,10 +10,6 @@ jobs:
   publish:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        deno: [ 2.6.5 ]
-
     permissions:
       contents: write
       id-token: write
@@ -22,22 +18,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Deno
-        uses: denolib/setup-deno@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          deno-version: ${{ matrix.deno }}
+          node-version: 22
+          cache: npm
 
-      - name: Publish (dry run)
-        if: github.event_name == 'push'
-        run: deno publish --dry-run
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Publish
-        if: startsWith(github.event.ref, 'refs/tags/v')
-        run: deno publish
+      - name: Build
+        run: npm run build
 
-      - name: Release to github
-        if: startsWith(github.event.ref, 'refs/tags/v') && contains(github.event.ref, '-pre') != true
-        uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: false
+      - name: Test
+        run: npm test
+
+      - name: Publish to JSR (dry run)
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v')
+        run: npx jsr publish --dry-run
+
+      - name: Publish to JSR
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: npx jsr publish

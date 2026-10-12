@@ -1,5 +1,5 @@
-import { otelCore } from "../deps.ts";
-import type { ReadableLogRecord } from "../deps.ts";
+import { otelCore } from "../deps.js";
+import type { ReadableLogRecord } from "../deps.js";
 
 /** A single log entry handed to a {@link DatabaseLogRecordExporter} subclass. */
 export type TLogEntry = {

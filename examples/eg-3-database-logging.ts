@@ -1,5 +1,5 @@
-import { DatabaseLogRecordExporter, LogManager } from "../mod.ts";
-import type { TLogEntry } from "../mod.ts";
+import { DatabaseLogRecordExporter, LogManager } from "../mod.js";
+import type { TLogEntry } from "../mod.js";
 
 // DatabaseLogRecordExporter is DB-agnostic: extend it and implement
 // `insertBatch` for whatever store you're using. This example uses a fake

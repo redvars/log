@@ -1,4 +1,4 @@
-import type { TLogEntry } from "../types.ts";
+import type { TLogEntry } from "../types.js";
 
 // deno-lint-ignore no-control-regex
 const ANSI_ESCAPE_PATTERN = new RegExp(

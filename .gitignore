@@ -29,3 +29,6 @@ Temporary files
 .env.test.local
 .env.production.local
 .env.local
+
+# Coverage output
+coverage/

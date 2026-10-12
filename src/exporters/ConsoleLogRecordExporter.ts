@@ -1,7 +1,7 @@
-import { otelCore } from "../../deps.ts";
-import type { LogRecordExporter, ReadableLogRecord } from "../../deps.ts";
-import { toLogEntry } from "../types.ts";
-import { defaultFormatter } from "./formatters.ts";
+import { otelCore } from "../../deps.js";
+import type { LogRecordExporter, ReadableLogRecord } from "../../deps.js";
+import { toLogEntry } from "../types.js";
+import { defaultFormatter } from "./formatters.js";
 
 const COLOR_BY_SEVERITY_TEXT: Record<string, string> = {
   INFO: "\x1b[34m%s\x1b[39m",

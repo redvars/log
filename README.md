@@ -3,7 +3,7 @@
 [![JSR](https://jsr.io/badges/@redvars/log)](https://jsr.io/@redvars/log)
 [![codecov](https://codecov.io/gh/redvars/log/graph/badge.svg)](https://codecov.io/gh/redvars/log)
 
-A small, extensible logging package for Deno/Node built on the real
+A small, extensible logging package for Node.js built on the real
 [OpenTelemetry Logs SDK](https://opentelemetry.io/docs/specs/otel/logs/) (`@opentelemetry/sdk-logs` +
 `@opentelemetry/api-logs`) — not `@std/log`, which Deno's own std team has flagged as
 ["likely to be removed"](https://github.com/denoland/std/issues/6124).
@@ -20,8 +20,10 @@ A small, extensible logging package for Deno/Node built on the real
 ## Install
 
 ```
-deno add jsr:@redvars/log
+npx jsr add @redvars/log
 ```
+
+Published on [JSR](https://jsr.io/@redvars/log); works with `npm`, `pnpm`, `yarn`, and Deno (`deno add jsr:@redvars/log`).
 
 ## Quick start
 

@@ -1,6 +1,6 @@
-import { LogManager } from "../mod.ts";
-import type { LogRecordExporter, ReadableLogRecord } from "../mod.ts";
-import { toLogEntry } from "../mod.ts";
+import { LogManager } from "../mod.js";
+import type { LogRecordExporter, ReadableLogRecord } from "../mod.js";
+import { toLogEntry } from "../mod.js";
 
 // Any sink can be added by implementing the 3-method `LogRecordExporter`
 // interface directly - the database exporter in eg-3 is just one example of

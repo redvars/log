@@ -1,6 +1,6 @@
-import type { Context, otelLogsApi } from "../deps.ts";
-import { isLevelEnabled, severityNumberFor } from "./severity.ts";
-import type { LevelName } from "./severity.ts";
+import type { Context, otelLogsApi } from "../deps.js";
+import { isLevelEnabled, severityNumberFor } from "./severity.js";
+import type { LevelName } from "./severity.js";
 
 /**
  * Thin facade over an OTel `api-logs` `Logger`. Keeps the ergonomic

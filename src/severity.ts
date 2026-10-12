@@ -1,4 +1,4 @@
-import { otelLogsApi } from "../deps.ts";
+import { otelLogsApi } from "../deps.js";
 
 export type LevelName = "DEBUG" | "INFO" | "WARN" | "ERROR" | "CRITICAL";
 

@@ -1,5 +1,5 @@
 import { context as otelContext, trace } from "@opentelemetry/api";
-import { createConsoleExporter, LogManager } from "../mod.ts";
+import { createConsoleExporter, LogManager } from "../mod.js";
 
 // A logger built with `@redvars/log` can be bound to an OTel `Context` (e.g.
 // one carrying an active span) via `withContext()`. Every subsequent call on

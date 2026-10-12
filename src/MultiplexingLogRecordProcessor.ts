@@ -1,5 +1,5 @@
-import { otelCore } from "../deps.ts";
-import type { Context, LogRecordExporter, LogRecordProcessor, SdkLogRecord } from "../deps.ts";
+import { otelCore } from "../deps.js";
+import type { Context, LogRecordExporter, LogRecordProcessor, SdkLogRecord } from "../deps.js";
 
 /**
  * The one real `LogRecordProcessor` registered with a `LoggerProvider`.

@@ -1,4 +1,4 @@
-import { createConsoleExporter, createFileExporter, LogManager } from "../mod.ts";
+import { createConsoleExporter, createFileExporter, LogManager } from "../mod.js";
 
 const manager = new LogManager();
 manager.registerHandler("console", createConsoleExporter());

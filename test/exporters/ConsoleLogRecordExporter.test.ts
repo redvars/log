@@ -1,7 +1,8 @@
-import { assertEquals, assertMatch } from "@std/assert";
-import { createConsoleExporter, LogManager } from "../../mod.ts";
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { createConsoleExporter, LogManager } from "../../mod.js";
 
-Deno.test("createConsoleExporter - logs formatted messages to the console", () => {
+test("createConsoleExporter - logs formatted messages to the console", () => {
   const manager = new LogManager();
   manager.registerHandler("console", createConsoleExporter({ useColors: false }));
   const logger = manager.getLogger("ConsoleTest", "DEBUG");
@@ -15,6 +16,6 @@ Deno.test("createConsoleExporter - logs formatted messages to the console", () =
     console.log = originalLog;
   }
 
-  assertEquals(lines.length, 1);
-  assertMatch(lines[0], /^\[.+\] INFO {4}ConsoleTest {10}hello world$/);
+  assert.deepStrictEqual(lines.length, 1);
+  assert.match(lines[0], /^\[.+\] INFO {4}ConsoleTest {10}hello world$/);
 });

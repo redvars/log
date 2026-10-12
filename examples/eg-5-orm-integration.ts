@@ -1,5 +1,5 @@
-import { DatabaseLogRecordExporter, LogManager } from "../mod.ts";
-import type { TLogEntry } from "../mod.ts";
+import { DatabaseLogRecordExporter, LogManager } from "../mod.js";
+import type { TLogEntry } from "../mod.js";
 
 /**
  * Illustrative only — this file does NOT import `@redvars/orm`, to keep the

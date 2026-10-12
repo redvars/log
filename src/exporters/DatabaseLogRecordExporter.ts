@@ -1,7 +1,7 @@
-import { otelCore } from "../../deps.ts";
-import type { LogRecordExporter, ReadableLogRecord } from "../../deps.ts";
-import { toLogEntry } from "../types.ts";
-import type { TLogEntry } from "../types.ts";
+import { otelCore } from "../../deps.js";
+import type { LogRecordExporter, ReadableLogRecord } from "../../deps.js";
+import { toLogEntry } from "../types.js";
+import type { TLogEntry } from "../types.js";
 
 export type TDatabaseExporterOptions = {
   /** Flush once the buffer reaches this many entries. Default 20. */
@@ -23,7 +23,7 @@ export type TDatabaseExporterOptions = {
  */
 export abstract class DatabaseLogRecordExporter implements LogRecordExporter {
   #buffer: TLogEntry[] = [];
-  #timer: number;
+  #timer: ReturnType<typeof setInterval>;
   #batchSize: number;
   #onError: (error: unknown, batch: TLogEntry[]) => void;
 

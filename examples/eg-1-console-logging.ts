@@ -1,4 +1,4 @@
-import { defaultLogManager } from "../mod.ts";
+import { defaultLogManager } from "../mod.js";
 
 // `defaultLogManager` already has a "console" handler registered, so this
 // works with zero setup.
